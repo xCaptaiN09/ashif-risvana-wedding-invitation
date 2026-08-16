@@ -40,16 +40,9 @@
           </div>
 
           <div class="envelope-cinematic-wrapper">
-            <!-- Photorealistic Video Layer (Hardware Scrubbed on Scroll) -->
+            <!-- Photorealistic Frame Scrub Layer (Zero-lag Canvas Renderer for mobile & desktop) -->
             <div class="video-envelope-frame" id="video-envelope-frame">
-              <video 
-                id="envelope-video"
-                src="/assets/envelope-video-keyframes.mp4" 
-                poster="/assets/envelope-closed.png"
-                playsinline 
-                muted 
-                preload="auto">
-              </video>
+              <canvas id="envelope-canvas" width="800" height="450"></canvas>
             </div>
 
             <!-- THE GRAND FORMAL LUXURY INVITATION LETTER (HTML Crisp Typography) -->

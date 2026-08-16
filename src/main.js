@@ -20,7 +20,7 @@ if (music) {
 
 const envelopeTrack = document.querySelector('.envelope-track');
 const videoEnvelopeFrame = document.querySelector('#video-envelope-frame');
-const envelopeVideo = document.querySelector('#envelope-video');
+const envelopeCanvas = document.querySelector('#envelope-canvas');
 const invitationLetter = document.querySelector('#invitation-letter');
 const envelopeHeading = document.querySelector('#envelope-heading');
 const stagePrompt = document.querySelector('#stage-prompt');
@@ -28,14 +28,39 @@ const celebrationTrack = document.querySelector('.celebration-track');
 const celebrationCards = [...document.querySelectorAll('[data-celebration]')];
 const celebrationProgress = document.querySelector('#celebration-progress');
 
-// Ensure video is ready for seeking
-if (envelopeVideo) {
-  envelopeVideo.pause();
-  envelopeVideo.currentTime = 0;
-  // Load metadata to have accurate duration
-  envelopeVideo.addEventListener('loadedmetadata', () => {
-    onScroll();
-  });
+// ==========================================================================
+// High Performance Canvas Frame Preloader (Zero-Lag Mobile & Desktop Engine)
+// ==========================================================================
+const TOTAL_FRAMES = 62;
+const frames = [];
+let framesLoaded = 0;
+let lastDrawnIndex = -1;
+let ctx = null;
+
+if (envelopeCanvas) {
+  ctx = envelopeCanvas.getContext('2d', { alpha: false });
+}
+
+function renderFrame(index) {
+  if (!ctx || !envelopeCanvas || !frames[index] || !frames[index].complete) return;
+  if (index === lastDrawnIndex) return;
+  
+  ctx.drawImage(frames[index], 0, 0, envelopeCanvas.width, envelopeCanvas.height);
+  lastDrawnIndex = index;
+}
+
+// Preload all 62 optimized WebP frames
+for (let i = 1; i <= TOTAL_FRAMES; i++) {
+  const img = new Image();
+  const frameNum = String(i).padStart(3, '0');
+  img.src = `/assets/envelope_frames_lite/f_${frameNum}.webp`;
+  img.onload = () => {
+    framesLoaded++;
+    if (i === 1 && lastDrawnIndex === -1) {
+      renderFrame(0);
+    }
+  };
+  frames.push(img);
 }
 
 function getTrackProgress(track) {
@@ -47,15 +72,10 @@ function updateEnvelope() {
   if (!envelopeTrack) return;
   const progress = getTrackProgress(envelopeTrack);
 
-  // 1. Scrub Envelope Video (0% -> 48% progress opens the envelope completely)
-  if (envelopeVideo && envelopeVideo.duration) {
-    const videoProgress = clamp(progress / 0.48);
-    const targetTime = videoProgress * (envelopeVideo.duration - 0.05);
-    // Only update if difference is meaningful for silky smooth 60fps render
-    if (Math.abs(envelopeVideo.currentTime - targetTime) > 0.02) {
-      envelopeVideo.currentTime = targetTime;
-    }
-  }
+  // 1. Instant 60fps/120fps Canvas Frame Scrubbing (0% -> 48% progress)
+  const videoProgress = clamp(progress / 0.48);
+  const targetFrameIndex = Math.min(TOTAL_FRAMES - 1, Math.floor(videoProgress * (TOTAL_FRAMES - 1)));
+  renderFrame(targetFrameIndex);
 
   // 2. Grand HTML Invitation Card Reveal (38% -> 85% progress)
   if (invitationLetter) {
@@ -71,7 +91,7 @@ function updateEnvelope() {
     invitationLetter.style.pointerEvents = cardEased > 0.7 ? 'auto' : 'none';
     invitationLetter.style.boxShadow = `0 ${20 + cardEased * 25}px ${40 + cardEased * 45}px rgba(35, 24, 16, ${0.15 + cardEased * 0.22})`;
 
-    // Subtle luxury depth on video frame behind the card
+    // Subtle luxury depth of field on envelope background behind the card
     if (videoEnvelopeFrame) {
       const depthScale = 1 - cardEased * 0.04;
       const depthBlur = cardEased * 4;
@@ -125,5 +145,4 @@ function onScroll() {
 
 window.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('resize', onScroll, { passive: true });
-// Trigger initial frame
 onScroll();
