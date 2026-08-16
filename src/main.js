@@ -3,19 +3,51 @@ import { weddingConfig } from './config.js';
 const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
 
-// Background ambient audio
+// ==========================================================================
+// Background Ambient Audio & Luxury Toggle Button
+// ==========================================================================
 const music = document.querySelector('#ambient-music');
+const musicToggle = document.querySelector('#music-toggle');
+
+function updateMusicState() {
+  if (!music || !musicToggle) return;
+  if (music.paused) {
+    musicToggle.classList.remove('is-playing');
+    musicToggle.classList.add('is-paused');
+    musicToggle.setAttribute('aria-pressed', 'false');
+    musicToggle.title = 'Play ambient music';
+  } else {
+    musicToggle.classList.remove('is-paused');
+    musicToggle.classList.add('is-playing');
+    musicToggle.setAttribute('aria-pressed', 'true');
+    musicToggle.title = 'Pause ambient music';
+  }
+}
+
 if (music) {
   music.src = weddingConfig.music.src;
   music.loop = true;
-  music.volume = 0.14;
+  music.volume = 0.16;
+
   const startMusic = () => {
-    music.play().catch(() => {});
+    music.play().then(updateMusicState).catch(() => {});
     window.removeEventListener('scroll', startMusic);
     window.removeEventListener('click', startMusic);
   };
   window.addEventListener('scroll', startMusic, { once: true, passive: true });
   window.addEventListener('click', startMusic, { once: true, passive: true });
+
+  if (musicToggle) {
+    musicToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (music.paused) {
+        music.play().then(updateMusicState).catch(() => {});
+      } else {
+        music.pause();
+        updateMusicState();
+      }
+    });
+  }
 }
 
 const envelopeTrack = document.querySelector('.envelope-track');
