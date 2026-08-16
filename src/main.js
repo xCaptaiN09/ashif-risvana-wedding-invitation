@@ -29,11 +29,18 @@ const celebrationCards = [...document.querySelectorAll('[data-celebration]')];
 const celebrationProgress = document.querySelector('#celebration-progress');
 
 // ==========================================================================
-// High Performance Canvas Frame Preloader (Zero-Lag Mobile & Desktop Engine)
+// Adaptive Resolution Canvas Engine (Ultra-Lite Mobile / High-Res Desktop)
 // ==========================================================================
 const TOTAL_FRAMES = 62;
+const isDesktop = window.innerWidth >= 768;
+const frameFolder = isDesktop ? 'envelope_frames_hd' : 'envelope_frames_lite';
+
+if (envelopeCanvas) {
+  envelopeCanvas.width = isDesktop ? 1440 : 800;
+  envelopeCanvas.height = isDesktop ? 810 : 450;
+}
+
 const frames = [];
-let framesLoaded = 0;
 let lastDrawnIndex = -1;
 let ctx = null;
 
@@ -49,13 +56,12 @@ function renderFrame(index) {
   lastDrawnIndex = index;
 }
 
-// Preload all 62 optimized WebP frames
+// Preload adaptive frame sequence
 for (let i = 1; i <= TOTAL_FRAMES; i++) {
   const img = new Image();
   const frameNum = String(i).padStart(3, '0');
-  img.src = `/assets/envelope_frames_lite/f_${frameNum}.webp`;
+  img.src = `/assets/${frameFolder}/f_${frameNum}.webp`;
   img.onload = () => {
-    framesLoaded++;
     if (i === 1 && lastDrawnIndex === -1) {
       renderFrame(0);
     }
