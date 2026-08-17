@@ -61,15 +61,14 @@ const celebrationCards = [...document.querySelectorAll('[data-celebration]')];
 const celebrationProgress = document.querySelector('#celebration-progress');
 
 // ==========================================================================
-// Adaptive Resolution Canvas Engine (Ultra-Lite Mobile / High-Res Desktop)
+// High Definition Retina Canvas Engine (1440p High-Res for all screens)
 // ==========================================================================
 const TOTAL_FRAMES = 62;
-const isDesktop = window.innerWidth >= 768;
-const frameFolder = isDesktop ? 'envelope_frames_hd' : 'envelope_frames_lite';
+const frameFolder = 'envelope_frames_hd';
 
 if (envelopeCanvas) {
-  envelopeCanvas.width = isDesktop ? 1440 : 800;
-  envelopeCanvas.height = isDesktop ? 810 : 450;
+  envelopeCanvas.width = 1440;
+  envelopeCanvas.height = 810;
 }
 
 const frames = [];
